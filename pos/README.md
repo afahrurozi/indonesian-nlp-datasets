@@ -25,22 +25,3 @@ Classes used are:
 | X     | Abbreviations, foreign words, typos, etc. |
 
 
-## Statistics
-
-The `../utils/tagstat.py` script will show the following statistics about a tagged corpus.
-
-* total number of words
-* words
-* tags and the number of each tag occurs ('*': word found in Google translate lexicon but tag is not in the taglist)
-* list of tags for each word according to Google Translate
-
-Example:
-
-To generate all entries:
-
-    python ../utils/tagstat.py -L pos/lexicon-id-gtrans.json -I id-news.pos -O id-news-stat.md
-
-To generate maximum `NUM` entires:
-
-    python ../utils/tagstat.py -L pos/lexicon-id-gtrans.json -I id-news.pos -O id-news-stat.md -M 500
-
