@@ -1,8 +1,0 @@
-<?php
-$DB_PARAM = array(
-    'dbname'    => '',
-    'user'      => '',
-    'password'  => '',
-    'host'      => 'localhost',
-    'driver'    => 'pdo_mysql'
-);
