@@ -1,3 +1,5 @@
+import re
+
 def preprocess(text):
     unicode_replacements = {
         ur"[‘’‚‛`´ʹʻʼʾʿˋˊ˴]": "'",
@@ -43,3 +45,84 @@ punkt_param.abbrev_types = abbreviations
 sent_tokenizer = PunktSentenceTokenizer(punkt_param)
 word_tokenizer = PunktWordTokenizer()
 
+
+
+corpus = codecs.open('1000news-tokenized.txt', 'r', 'utf-8').read().split()
+corpus_tokens = []
+boundaries = set()
+offset = 0
+for token in corpus:
+    corpus_tokens.append(token)
+    offset += len(token)
+    boundaries.add(offset-1)
+
+
+import regex
+
+def wordshape(text):
+    text = regex.sub('\p{N}', '0', text)
+    text = regex.sub('\p{Ll}+', 'a', text)
+    text = regex.sub('\p{Lt}+', 'A', text)
+    return text
+
+def punkt_features(tokens, i):
+    return {
+        'punct': tokens[i],
+        #'pw': tokens[i-1].lower(),
+        #'nw': tokens[i+1].lower(),
+        'lpw': len(tokens[i-1]),
+        'pwcap': tokens[i-1][0].isupper(),
+        'pwdig': tokens[i-1][0].isdigit(),
+        'nwcap': tokens[i+1][0].isupper(),
+        'nwdig': tokens[i+1][0].isdigit(),
+        'pw': tokens[i-1].lower(),
+        #'pw-1': tokens[i-1][-1:].lower(),
+        #'pw-2': tokens[i-1][-2:].lower(),
+        #'pw-3': tokens[i-1][-3:].lower(),
+        'nw': tokens[i+1].lower(),
+        #'nw+1': tokens[i+1][:1].lower(),
+        #'nw+2': tokens[i+1][:2].lower(),
+        #'nw+3': tokens[i+1][:3].lower(),
+        'pws': wordshape(tokens[i-1]),
+        'nws': wordshape(tokens[i+1]),
+    }
+
+featuresets = [(punkt_features(corpus_tokens, i), (i in boundaries))
+               for i in range(1, len(corpus_tokens)-1)
+               if regex.match('\p{P}', corpus_tokens[i]) != None]
+
+size = int(len(featuresets) * 0.1)
+train_set, test_set = featuresets[size:], featuresets[:size]
+classifier = nltk.NaiveBayesClassifier.train(train_set)
+nltk.classify.accuracy(classifier, test_set)
+
+
+def segment_sentences(words):
+    start = 0
+    sents = []
+    for i, word in enumerate(words):
+        if word in '.?!' and classifier.classify(punkt_features(words, i)) == True:
+            sents.append(words[start:i+1])
+            start = i+1
+    if start < len(words):
+        sents.append(words[start:])
+    return sents
+
+def tokenize(text):
+    result = ['']
+    tokens = [token.strip() for token in regex.split('(\w+|\p{P})', text) if token.strip()] + ['JUNK']
+    space_next = True
+    for i, token in enumerate(tokens[:-1]):
+        print i, token, classifier.classify(punkt_features(tokens, i))
+        if regex.match('^\p{P}$', token) and tokens[i+1] == 'JUNK':
+            result.append(token)
+        elif regex.match('^\p{P}$', token) and classifier.classify(punkt_features(tokens, i)) == True:
+            result[-1] += token
+            space_next = False
+        else:
+            if space_next:
+                result.append(token)
+            else:
+                result[-1] += token
+                space_next = True
+    return [token for token in result if token]
