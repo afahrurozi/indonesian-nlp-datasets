@@ -19,9 +19,10 @@ Classes used are:
 | DET   | Determiners and articles                  |
 | NOUN  | Nouns                                     |
 | NUM   | Numerals                                  |
+| PNOUN | Proper nouns*                             |
 | PRON  | Pronouns                                  |
 | PRT   | Particles                                 |
 | VERB  | Verbs                                     |
 | X     | Abbreviations, foreign words, typos, etc. |
 
-
+*) Not part of Universal POS tagset
